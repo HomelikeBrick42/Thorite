@@ -6,4 +6,3 @@ edition = "2021"
 [dependencies]
 paste = "1.0.15"
 slotmap = "1.0.7"
-thiserror = "1.0.61"
