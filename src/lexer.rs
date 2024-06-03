@@ -7,6 +7,7 @@ with_location_kind! {
     #[derive(Debug)]
     pub enum Token {
         Name(String),
+        LetKeyword,
         EnumKeyword,
         MatchKeyword,
         Semicolon,
@@ -61,6 +62,15 @@ impl<'a> Lexer<'a> {
         }
         Some(c)
     }
+
+    pub fn peek(&self) -> Option<<Self as Iterator>::Item> {
+        Self {
+            location: self.location.clone(),
+            source: self.source,
+            chars: self.chars.clone(),
+        }
+        .next()
+    }
 }
 
 impl Iterator for Lexer<'_> {
@@ -83,8 +93,6 @@ impl Iterator for Lexer<'_> {
                 };
             }
             return Some(Ok(match self.next_char() {
-                None => return None,
-
                 Some(';') => simple!(TokenKind::Semicolon),
                 Some(':') => simple!(TokenKind::Colon),
                 Some(',') => simple!(TokenKind::Comma),
@@ -105,6 +113,7 @@ impl Iterator for Lexer<'_> {
                     Token {
                         location,
                         kind: match name {
+                            "let" => TokenKind::LetKeyword,
                             "enum" => TokenKind::EnumKeyword,
                             "match" => TokenKind::MatchKeyword,
                             _ => TokenKind::Name(name.to_string()),
@@ -113,6 +122,8 @@ impl Iterator for Lexer<'_> {
                 }
 
                 Some(c) if c.is_whitespace() => continue,
+
+                None => return None,
                 Some(c) => {
                     return Some(Err(LexerError {
                         location: location!(),
