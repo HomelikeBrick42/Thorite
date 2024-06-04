@@ -155,6 +155,29 @@ pub fn parse_primary_expression(lexer: &mut Lexer<'_>) -> Result<Ast, ParserErro
     })
 }
 
-pub fn parse_pattern(_lexer: &mut Lexer<'_>) -> Result<AstPattern, ParserError> {
-    todo!()
+pub fn parse_pattern(lexer: &mut Lexer<'_>) -> Result<AstPattern, ParserError> {
+    Ok(match expect_token!(lexer, _)? {
+        Token {
+            location,
+            kind: TokenKind::Name(name),
+        } => AstPattern {
+            location,
+            kind: AstPatternKind::Name {
+                name,
+                typ: if match_token!(lexer, TokenKind::Colon)?.is_some() {
+                    let typ = parse_expression(lexer)?;
+                    Some(Box::new(typ))
+                } else {
+                    None
+                },
+            },
+        },
+
+        token => {
+            return Err(ParserError {
+                location: token.location.clone(),
+                kind: ParserErrorKind::UnexpectedToken(token),
+            });
+        }
+    })
 }
