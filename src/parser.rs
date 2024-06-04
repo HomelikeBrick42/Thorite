@@ -87,14 +87,15 @@ macro_rules! expect_token {
 }
 
 pub fn parse_statement(lexer: &mut Lexer<'_>) -> Result<Ast, ParserError> {
-    Ok(match expect_token!(lexer, _)? {
-        Token {
-            location: start_location,
-            kind: TokenKind::LetKeyword,
-        } => {
-            lexer.next();
-            Ast {
-                kind: AstKind::Let {
+    let Token {
+        location: start_location,
+        kind,
+    } = expect_token!(lexer, _)?;
+    Ok(Ast {
+        kind: match kind {
+            TokenKind::LetKeyword => {
+                lexer.next();
+                AstKind::Let {
                     pattern: parse_pattern(lexer)?,
                     value: if match_token!(lexer, TokenKind::Semicolon)?.is_none() {
                         let value = parse_expression(lexer)?;
@@ -103,34 +104,28 @@ pub fn parse_statement(lexer: &mut Lexer<'_>) -> Result<Ast, ParserError> {
                     } else {
                         None
                     },
-                },
-                location: start_location.combine(lexer.get_location()),
+                }
             }
-        }
 
-        Token {
-            location: _start_location,
-            kind: TokenKind::EnumKeyword,
-        } => {
-            lexer.next();
+            TokenKind::EnumKeyword => {
+                lexer.next();
 
-            todo!()
-        }
+                todo!()
+            }
 
-        Token {
-            location: _start_location,
-            kind: TokenKind::MatchKeyword,
-        } => {
-            lexer.next();
+            TokenKind::MatchKeyword => {
+                lexer.next();
 
-            todo!()
-        }
+                todo!()
+            }
 
-        _ => {
-            let expression = parse_expression(lexer)?;
-            expect_token!(lexer, TokenKind::Semicolon)?;
-            expression
-        }
+            _ => {
+                let expression = parse_expression(lexer)?;
+                expect_token!(lexer, TokenKind::Semicolon)?;
+                return Ok(expression);
+            }
+        },
+        location: start_location.combine(lexer.get_location()),
     })
 }
 
