@@ -90,7 +90,10 @@ pub fn parse_statement(lexer: &mut Lexer<'_>) -> Result<Ast, ParserError> {
     let Token {
         location: start_location,
         kind,
-    } = expect_token!(lexer, _)?;
+    } = lexer.peek().transpose()?.ok_or_else(|| ParserError {
+        location: lexer.get_location().clone(),
+        kind: ParserErrorKind::UnexpectedEOF,
+    })?;
     Ok(Ast {
         kind: match kind {
             TokenKind::LetKeyword => {
