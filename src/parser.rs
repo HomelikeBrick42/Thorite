@@ -181,6 +181,15 @@ pub fn parse_primary_expression(lexer: &mut Lexer<'_>) -> Result<Ast, ParserErro
             kind: AstKind::Name { name },
         },
 
+        Token {
+            kind: TokenKind::OpenParenthesis,
+            ..
+        } => {
+            let expression = parse_expression(lexer)?;
+            expect_token!(lexer, TokenKind::CloseParenthesis)?;
+            expression
+        }
+
         token => {
             return Err(ParserError {
                 location: token.location.clone(),
@@ -207,6 +216,15 @@ pub fn parse_pattern(lexer: &mut Lexer<'_>) -> Result<AstPattern, ParserError> {
                 },
             },
         },
+
+        Token {
+            kind: TokenKind::OpenParenthesis,
+            ..
+        } => {
+            let pattern = parse_pattern(lexer)?;
+            expect_token!(lexer, TokenKind::CloseParenthesis)?;
+            pattern
+        }
 
         token => {
             return Err(ParserError {
