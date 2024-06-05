@@ -17,6 +17,7 @@ with_location_kind! {
         CloseBracket,
         OpenParenthesis,
         CloseParenthesis,
+        Pipe,
     }
 
     #[derive(Debug)]
@@ -100,6 +101,7 @@ impl Iterator for Lexer<'_> {
                 Some('}') => simple!(TokenKind::CloseBracket),
                 Some('(') => simple!(TokenKind::OpenParenthesis),
                 Some(')') => simple!(TokenKind::CloseParenthesis),
+                Some('|') => simple!(TokenKind::Pipe),
 
                 Some(c) if c.is_ascii_alphabetic() || c == '_' => {
                     while self

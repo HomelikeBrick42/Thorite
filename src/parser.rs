@@ -14,13 +14,14 @@ with_location_kind! {
             pattern: AstPattern,
             value: Option<Box<Ast>>,
         },
-        Enum {
-            name: String,
-            variants: Vec<AstEnumVariant>,
-        },
         Match {
             scrutinee: Box<Ast>,
             arms: Vec<AstMatchArm>,
+        },
+        BinaryOperator {
+            left: Box<Ast>,
+            operator: BinaryOperator,
+            right: Box<Ast>,
         },
     }
 
@@ -30,8 +31,8 @@ with_location_kind! {
     }
 
     #[derive(Debug)]
-    pub enum AstEnumVariant {
-        Unit { name: String },
+    pub enum BinaryOperator {
+        Pipe,
     }
 
     #[derive(Debug)]
@@ -133,7 +134,41 @@ pub fn parse_statement(lexer: &mut Lexer<'_>) -> Result<Ast, ParserError> {
 }
 
 pub fn parse_expression(lexer: &mut Lexer<'_>) -> Result<Ast, ParserError> {
-    parse_primary_expression(lexer)
+    parse_binary_expression(lexer, 0)
+}
+
+pub fn parse_binary_expression(
+    lexer: &mut Lexer<'_>,
+    parent_precedence: u8,
+) -> Result<Ast, ParserError> {
+    let mut left = parse_primary_expression(lexer)?;
+
+    while let Some(operator_token) = lexer.peek().transpose()? {
+        let (operator_precedence, binary_operator_kind) = match operator_token.kind {
+            TokenKind::Pipe => (1, BinaryOperatorKind::Pipe),
+            _ => break,
+        };
+        if operator_precedence <= parent_precedence {
+            break;
+        }
+
+        lexer.next();
+        let right = parse_binary_expression(lexer, operator_precedence)?;
+
+        left = Ast {
+            location: left.location.combine(&right.location),
+            kind: AstKind::BinaryOperator {
+                left: Box::new(left),
+                operator: BinaryOperator {
+                    location: operator_token.location,
+                    kind: binary_operator_kind,
+                },
+                right: Box::new(right),
+            },
+        };
+    }
+
+    Ok(left)
 }
 
 pub fn parse_primary_expression(lexer: &mut Lexer<'_>) -> Result<Ast, ParserError> {
