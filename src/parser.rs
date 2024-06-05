@@ -111,12 +111,6 @@ pub fn parse_statement(lexer: &mut Lexer<'_>) -> Result<Ast, ParserError> {
                 }
             }
 
-            TokenKind::EnumKeyword => {
-                lexer.next();
-
-                todo!()
-            }
-
             TokenKind::MatchKeyword => {
                 lexer.next();
 

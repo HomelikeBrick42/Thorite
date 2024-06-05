@@ -8,7 +8,6 @@ with_location_kind! {
     pub enum Token {
         Name(String),
         LetKeyword,
-        EnumKeyword,
         MatchKeyword,
         Semicolon,
         Colon,
@@ -116,7 +115,6 @@ impl Iterator for Lexer<'_> {
                         location,
                         kind: match name {
                             "let" => TokenKind::LetKeyword,
-                            "enum" => TokenKind::EnumKeyword,
                             "match" => TokenKind::MatchKeyword,
                             _ => TokenKind::Name(name.to_string()),
                         },
